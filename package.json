@@ -14,6 +14,9 @@
     "deploy": "git push heroku master",
     "postdeploy": "npm run migrate:production"
   },
+  "engines": {
+    "node": "14.x"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/KevDev90/Food-Finder-Server.git"

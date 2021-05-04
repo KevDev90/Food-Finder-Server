@@ -1,6 +1,7 @@
 require('dotenv').config();
-process.env.NODE_TLS_REJECT_UNAUTHORIZED=0
+// process.env.NODE_TLS_REJECT_UNAUTHORIZED=0
 const pg = require('pg');
+pg.defaults.ssl = process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false;
 
 
 module.exports = {

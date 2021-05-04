@@ -5,13 +5,13 @@ const db = require("./db");
 const knex = require("knex");
 process.env.NODE_TLS_REJECT_UNAUTHORIZED=0
 const morgan = require("morgan");
-
+const pg = require('pg');
+pg.defaults.ssl = process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false;
 const app = express();
 
 const pgdb = knex({
     client: 'pg',
-    connection: `${process.env.DATABASE_URL}?ssl=true`,
-    ssl: { rejectUnauthorized: false }
+    connection: `${process.env.DATABASE_URL}`,
 })
 
 app.set('db', pgdb)
