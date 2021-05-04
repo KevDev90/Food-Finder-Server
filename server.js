@@ -16,7 +16,7 @@ const pgdb = knex({
 
 app.set('db', pgdb)
 
-app.use(cors({ origin: '*' }));
+app.use(cors());
 app.use(express.json());
 
 // Get all Restaurants
