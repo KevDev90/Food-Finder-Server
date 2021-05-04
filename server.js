@@ -3,7 +3,6 @@ const express = require("express");
 const cors = require("cors");
 const db = require("./db");
 const knex = require("knex");
-process.env.NODE_TLS_REJECT_UNAUTHORIZED=0
 const morgan = require("morgan");
 const pg = require('pg');
 pg.defaults.ssl = process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false;
