@@ -14,7 +14,11 @@ const pgdb = knex({
 })
 console.log('processenvurl', process.env.DATABASE_URL)
 app.set('db', pgdb)
-app.use(morgan)
+const morganOption = (NODE_ENV === 'production')
+  ? 'tiny'
+  : 'common';
+
+app.use(morgan(morganOption))
 app.use(cors());
 app.options("*", cors());
 app.use(express.json());
