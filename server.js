@@ -53,6 +53,7 @@ app.get("/api/v1/restaurants", async (req, res) => {
     });
   } catch (err) {
     console.log(err);
+    return res.status(500).json({ message: err.message });
   }
 });
 
@@ -82,6 +83,7 @@ app.get("/api/v1/restaurants/:id", async (req, res) => {
     });
   } catch (err) {
     console.log(err);
+    return res.status(500).json({ message: "Server error " + err.message })
   }
 });
 
@@ -98,15 +100,15 @@ app.post("/api/v1/restaurants", async (req, res) => {
     console.log('dbpostqueryresults', results)
 
     res.status(201).json({
-      status: "succes",
+      status: "success",
       data: {
         restaurant: results.rows[0],
       },
     });
   } catch (err) {
     console.log(err);
+    return res.status(500).json({ message: "Server error " + err.message })
   }
-  console.log('dbpostqueryresults', results)
 });
 
 // Update Restaurants
@@ -126,9 +128,9 @@ app.put("/api/v1/restaurants/:id", async (req, res) => {
     });
   } catch (err) {
     console.log(err);
+    return res.status(500).json({ message: "Server error " + err.message })
   }
-  console.log(req.params.id);
-  console.log(req.body);
+
 });
 
 // Delete Restaurant
@@ -143,6 +145,7 @@ app.delete("/api/v1/restaurants/:id", async (req, res) => {
     });
   } catch (err) {
     console.log(err);
+    return res.status(500).json({ message: "Server error " + err.message })
   }
 });
 
@@ -161,11 +164,9 @@ app.post("/api/v1/restaurants/:id/addReview", async (req, res) => {
     });
   } catch (err) {
     console.log(err);
+    return res.status(500).json({ message: "Server error " + err.message })
   }
 });
-
-const port = process.env.PORT || 3002;
-
 
 if (NODE_ENV === "production") {
   app.listen(PORT, IP, () => {
