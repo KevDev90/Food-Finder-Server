@@ -1,7 +1,7 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
-const db = require("./db");
+// const db = require("./db");
 const knex = require("knex");
 const morgan = require("morgan");
 const pg = require('pg');
@@ -12,19 +12,25 @@ const pgdb = knex({
     client: 'pg',
     connection: `${process.env.DATABASE_URL}`,
 })
-
+console.log('processenvurl', process.env.DATABASE_URL)
 app.set('db', pgdb)
-
+app.use(morgan)
 app.use(cors());
 app.use(express.json());
 
+
 // Get all Restaurants
 app.get("/api/v1/restaurants", async (req, res) => {
+    console.log('getrequest')
     try {
         //const results = await db.query("select * from restaurants");
-        const restaurantRatingsData = await db.query(
-            "select * from restaurants left join (select restaurant_id, COUNT(*), TRUNC(AVG(rating),1) as average_rating from reviews group by restaurant_id) reviews on restaurants.id = reviews.restaurant_id;"
-        );
+        
+        // const restaurantRatingsData = await pgdb.raw(
+        //     "select * from restaurants left join (select restaurant_id, COUNT(*), TRUNC(AVG(rating),1) as average_rating from reviews group by restaurant_id) reviews on restaurants.id = reviews.restaurant_id;"
+        // );
+        const restaurantRatingsData = await pgdb.raw(
+            "select * from restaurants");
+        console.log('dbqueryresults', restaurantRatingsData)
 
         res.status(200).json({
             status: "success",
@@ -43,13 +49,13 @@ app.get("/api/v1/restaurants/:id", async (req, res) => {
     console.log(req.params.id);
 
     try {
-        const restaurant = await db.query(
+        const restaurant = await pgdb.raw(
             "select * from restaurants left join (select restaurant_id, COUNT(*), TRUNC(AVG(rating),1) as average_rating from reviews group by restaurant_id) reviews on restaurants.id = reviews.restaurant_id where id = $1",
             [req.params.id]
         );
         // select * from restaurants wehre id = req.params.id
 
-        const reviews = await db.query(
+        const reviews = await pgdb.raw(
             "select * from reviews where restaurant_id = $1",
             [req.params.id]
         );
@@ -70,14 +76,15 @@ app.get("/api/v1/restaurants/:id", async (req, res) => {
 // Create a Restaurant
 
 app.post("/api/v1/restaurants", async (req, res) => {
-    console.log(req.body);
+    console.log('postreq', req.body);
 
     try {
-        const results = await db.query(
+        const results = await pgdb.raw(
             "INSERT INTO restaurants (name, location, price_range) values ($1, $2, $3) returning *",
             [req.body.name, req.body.location, req.body.price_range]
         );
-        console.log(results);
+        console.log('dbpostqueryresults', results)
+        
         res.status(201).json({
             status: "succes",
             data: {
@@ -87,13 +94,14 @@ app.post("/api/v1/restaurants", async (req, res) => {
     } catch (err) {
         console.log(err);
     }
+    console.log('dbpostqueryresults', results)
 });
 
 // Update Restaurants
 
 app.put("/api/v1/restaurants/:id", async (req, res) => {
     try {
-        const results = await db.query(
+        const results = await pgdb.raw(
             "UPDATE restaurants SET name = $1, location = $2, price_range = $3 where id = $4 returning *",
             [req.body.name, req.body.location, req.body.price_range, req.params.id]
         );
@@ -115,7 +123,7 @@ app.put("/api/v1/restaurants/:id", async (req, res) => {
 
 app.delete("/api/v1/restaurants/:id", async (req, res) => {
     try {
-        const results = db.query("DELETE FROM restaurants where id = $1", [
+        const results = pgdb.raw("DELETE FROM restaurants where id = $1", [
             req.params.id,
         ]);
         res.status(204).json({
@@ -128,7 +136,7 @@ app.delete("/api/v1/restaurants/:id", async (req, res) => {
 
 app.post("/api/v1/restaurants/:id/addReview", async (req, res) => {
     try {
-        const newReview = await db.query(
+        const newReview = await pgdb.raw(
             "INSERT INTO reviews (restaurant_id, name, review, rating) values ($1, $2, $3, $4) returning *;",
             [req.params.id, req.body.name, req.body.review, req.body.rating]
         );
