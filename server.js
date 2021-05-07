@@ -16,7 +16,12 @@ console.log('processenvurl', process.env.DATABASE_URL)
 app.set('db', pgdb)
 app.use(morgan)
 app.use(cors());
+app.options("*", cors());
 app.use(express.json());
+
+app.get("/", (req, res) => {
+  return res.status(200).json({ message: "food app server" })
+})
 
 // app.get("/healthy",(req,res) => {
 //   res.send('ok')
