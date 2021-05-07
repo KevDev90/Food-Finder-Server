@@ -18,7 +18,9 @@ app.use(morgan)
 app.use(cors());
 app.use(express.json());
 
-
+app.get("/healthy",(req,res) => {
+  res.send('ok')
+}) 
 // Get all Restaurants
 app.get("/api/v1/restaurants", async (req, res) => {
     console.log('getrequest')
