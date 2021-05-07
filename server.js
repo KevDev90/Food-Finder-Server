@@ -14,6 +14,7 @@ const pgdb = knex({
 })
 console.log('processenvurl', process.env.DATABASE_URL)
 app.set('db', pgdb)
+const { NODE_ENV, PORT, IP } = process.env;
 const morganOption = (NODE_ENV === 'production')
   ? 'tiny'
   : 'common';
@@ -164,7 +165,7 @@ app.post("/api/v1/restaurants/:id/addReview", async (req, res) => {
 });
 
 const port = process.env.PORT || 3002;
-const { NODE_ENV, PORT, IP } = process.env;
+
 
 if (NODE_ENV === "production") {
   app.listen(PORT, IP, () => {
