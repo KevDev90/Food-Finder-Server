@@ -1,19 +1,25 @@
 require("dotenv").config();
 const express = require("express");
+import Restaurant from "./models/Restaurant";
+import Review from "./models/Review";
+import { validateReviewData } from "./validators/review.validator"
+import { validateRestaurantData, validateRestaurantUpdateData } from "./validators/restaurant.validator"
+import { createConnection, sequelize } from "./utils/dbconnection.util"
 const cors = require("cors");
 // const db = require("./db");
-const knex = require("knex");
+// const knex = require("knex");
 const morgan = require("morgan");
-const pg = require('pg');
-pg.defaults.ssl = process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false;
+// const pg = require('pg');
+// pg.defaults.ssl = process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false;
 const app = express();
+createConnection(sequelize);
 
-const pgdb = knex({
-  client: 'pg',
-  connection: `${process.env.DATABASE_URL}`,
-})
-console.log('processenvurl', process.env.DATABASE_URL)
-app.set('db', pgdb)
+// const pgdb = knex({
+//   client: 'pg',
+//   connection: `${process.env.DATABASE_URL}`,
+// })
+// console.log('processenvurl', process.env.DATABASE_URL)
+// app.set('db', pgdb)
 const { NODE_ENV, PORT, IP } = process.env;
 const morganOption = (NODE_ENV === 'production')
   ? 'tiny'
@@ -23,6 +29,12 @@ app.use(morgan(morganOption))
 app.use(cors());
 app.options("*", cors());
 app.use(express.json());
+
+Restaurant.hasMany(Review, { as: "reviews", foreignKey: "restaurant_id" })
+Review.belongsTo(Restaurant, {
+  as: "restaurant",
+  foreignKey: "restaurant_id"
+})
 
 app.get("/", (req, res) => {
   return res.status(200).json({ message: "food app server" })
@@ -40,16 +52,19 @@ app.get("/api/v1/restaurants", async (req, res) => {
     // const restaurantRatingsData = await pgdb.raw(
     //     "select * from restaurants left join (select restaurant_id, COUNT(*), TRUNC(AVG(rating),1) as average_rating from reviews group by restaurant_id) reviews on restaurants.id = reviews.restaurant_id;"
     // );
-    const restaurantRatingsData = await pgdb.raw(
-      "select * from restaurants");
-    console.log('dbqueryresults', restaurantRatingsData)
+    // const restaurantRatingsData = await pgdb.raw(
+    //   "select * from restaurants");
+    // console.log('dbqueryresults', restaurantRatingsData)
+    const restaurants = await Restaurant.findAll()
 
     res.status(200).json({
       status: "success",
-      results: restaurantRatingsData.rows.length,
-      data: {
-        restaurants: restaurantRatingsData.rows,
-      },
+      results: restaurants.length,
+      data: restaurants
+      // results: restaurantRatingsData.rows.length,
+      // data: {
+      //   restaurants: restaurantRatingsData.rows,
+      // },
     });
   } catch (err) {
     console.log(err);
@@ -59,27 +74,33 @@ app.get("/api/v1/restaurants", async (req, res) => {
 
 //Get a Restaurant
 app.get("/api/v1/restaurants/:id", async (req, res) => {
-  console.log(req.params.id);
-
   try {
-    const restaurant = await pgdb.raw(
-      "select * from restaurants left join (select restaurant_id, COUNT(*), TRUNC(AVG(rating),1) as average_rating from reviews group by restaurant_id) reviews on restaurants.id = reviews.restaurant_id where id = $1",
-      [req.params.id]
-    );
-    // select * from restaurants wehre id = req.params.id
 
-    const reviews = await pgdb.raw(
-      "select * from reviews where restaurant_id = $1",
-      [req.params.id]
-    );
-    console.log(reviews);
+    // const restaurant = await pgdb.raw(
+    //   "select * from restaurants left join (select restaurant_id, COUNT(*), TRUNC(AVG(rating),1) as average_rating from reviews group by restaurant_id) reviews on restaurants.id = reviews.restaurant_id where id = $1",
+    //   [req.params.id]
+    // );
+    // // select * from restaurants wehre id = req.params.id
 
-    res.status(200).json({
-      status: "succes",
-      data: {
-        restaurant: restaurant.rows[0],
-        reviews: reviews.rows,
-      },
+    // const reviews = await pgdb.raw(
+    //   "select * from reviews where restaurant_id = $1",
+    //   [req.params.id]
+    // );
+    //console.log(reviews);
+    let { id } = req.params;
+    let restaurant = await Restaurant.findByPk(id,
+      {
+        include: "reviews"
+      }
+    )
+    if (!restaurant) return res.status(404).json({ message: "restaurant does not exist" })
+    return res.status(200).json({
+      status: "success",
+      data: restaurant
+      // data: {
+      //   restaurant: restaurant.rows[0],
+      //   reviews: reviews.rows,
+      // },
     });
   } catch (err) {
     console.log(err);
@@ -93,16 +114,19 @@ app.post("/api/v1/restaurants", async (req, res) => {
   console.log('postreq', req.body);
 
   try {
-    const results = await pgdb.raw(
-      "INSERT INTO restaurants (name, location, price_range) values ($1, $2, $3) returning *",
-      [req.body.name, req.body.location, req.body.price_range]
-    );
-    console.log('dbpostqueryresults', results)
+    let { err, value } = await validateRestaurantData(req.body)
+    if (err) return res.status(400).json({ message: err.details[0].message, data: err.details })
+    // const results = await pgdb.raw(
+    //   "INSERT INTO restaurants (name, location, price_range) values ($1, $2, $3) returning *",
+    //   [req.body.name, req.body.location, req.body.price_range]
+    // );
+    // console.log('dbpostqueryresults', results)
+    const restaurant = await Restaurant.create(value)
 
     res.status(201).json({
       status: "success",
       data: {
-        restaurant: results.rows[0],
+        restaurant,
       },
     });
   } catch (err) {
@@ -115,15 +139,23 @@ app.post("/api/v1/restaurants", async (req, res) => {
 
 app.put("/api/v1/restaurants/:id", async (req, res) => {
   try {
-    const results = await pgdb.raw(
-      "UPDATE restaurants SET name = $1, location = $2, price_range = $3 where id = $4 returning *",
-      [req.body.name, req.body.location, req.body.price_range, req.params.id]
-    );
+    // const results = await pgdb.raw(
+    //   "UPDATE restaurants SET name = $1, location = $2, price_range = $3 where id = $4 returning *",
+    //   [req.body.name, req.body.location, req.body.price_range, req.params.id]
+    // );
+    const { err, value } = await validateRestaurantUpdateData(req.body)
+    if (err) return res.status(400).json({ message: err.details[0].message, data: err.details })
+    let { id } = req.params;
+    const restaurant = await Restaurant.findByPk(id);
+    if (!restaurant) return res.status(400).json({
+      message: "Restaurant not found"
+    })
+    const updatedRestaurant = await restaurant.update(value)
 
     res.status(200).json({
-      status: "succes",
+      status: "success",
       data: {
-        retaurant: results.rows[0],
+        retaurant: updatedRestaurant
       },
     });
   } catch (err) {
@@ -137,11 +169,17 @@ app.put("/api/v1/restaurants/:id", async (req, res) => {
 
 app.delete("/api/v1/restaurants/:id", async (req, res) => {
   try {
-    const results = pgdb.raw("DELETE FROM restaurants where id = $1", [
-      req.params.id,
-    ]);
-    res.status(204).json({
-      status: "sucess",
+    let restaurant = await Restaurant.findByPk(req.params.id);
+    if (!restaurant) return res.status(404).json({ message: "restaurant does not exist" })
+    let destroyedReviews = await Review.destroy({
+      where: {
+        restaurant_id: restaurant.id
+      }
+    })
+    const deletedRestaurant = await Restaurant.destroy({ where: { id: req.params.id } })
+    if (!deletedRestaurant) return res.status(400).json({ message: "cannot delete restaurant" })
+    res.status(200).json({
+      message: "restaurant",
     });
   } catch (err) {
     console.log(err);
@@ -151,15 +189,18 @@ app.delete("/api/v1/restaurants/:id", async (req, res) => {
 
 app.post("/api/v1/restaurants/:id/addReview", async (req, res) => {
   try {
-    const newReview = await pgdb.raw(
-      "INSERT INTO reviews (restaurant_id, name, review, rating) values ($1, $2, $3, $4) returning *;",
-      [req.params.id, req.body.name, req.body.review, req.body.rating]
-    );
-    console.log(newReview);
+    // const newReview = await pgdb.raw(
+    //   "INSERT INTO reviews (restaurant_id, name, review, rating) values ($1, $2, $3, $4) returning *;",
+    //   [req.params.id, req.body.name, req.body.review, req.body.rating]
+    // );
+    // console.log(newReview);
+    const { err, value } = await validateReviewData(req.body)
+    if (err) return res.status(400).json({ message: err.details[0].message, data: err.details })
+    const review = await Review.create(value)
     res.status(201).json({
       status: "success",
       data: {
-        review: newReview.rows[0],
+        review,
       },
     });
   } catch (err) {
