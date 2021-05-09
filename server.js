@@ -14,6 +14,12 @@ const morgan = require("morgan");
 const app = express();
 createConnection(sequelize);
 
+app.use(function(req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  next();
+});
+
 // const pgdb = knex({
 //   client: 'pg',
 //   connection: `${process.env.DATABASE_URL}`,
