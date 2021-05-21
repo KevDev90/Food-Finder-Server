@@ -2,13 +2,15 @@ require('dotenv').config;
 
 module.exports = {
   development: {
-    username: process.env.PGUSER,
-    password: process.env.PGPASSWORD,
-    database: process.env.PGDATABASE,
-    host: process.env.PGHOST,
+    username: 'woiwcddofmraiv',
+    password: '85c76f9826fc05c4a21d3f684784571d0800ab1bddbfbe92f58b519315e73148',
+    database: 'dbdqjmqv3nccsn',
+    host: 'ec2-35-174-35-242.compute-1.amazonaws.com',
     dialect: 'postgres',
+    ssl: true,
     dialectOptions: {
       ssl: {
+        require: true,
         rejectUnauthorized: false
       }
     },
@@ -30,9 +32,5 @@ module.exports = {
         rejectUnauthorized: false
       }
     },
-    // ssl: true,
-    // dialectOptions: {
-    //   ssl: true
-    // },
   }
 }

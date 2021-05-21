@@ -1,7 +1,8 @@
 require('dotenv').config();
 const pg = require('pg');
 pg.defaults.ssl = process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false;
-
+console.log(process.env.NODE_ENV, 'postgrator-env-var')
+console.log(process.env.DATABASE_URL, 'DB-URL')
 
 module.exports = {
   "migrationsDirectory": "migrations",
