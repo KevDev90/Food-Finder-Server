@@ -9,30 +9,13 @@ import {
 } from "../validators/restaurant.validator";
 import { createConnection, sequelize } from "../utils/dbconnection.util";
 const cors = require("cors");
-// const db = require("./db");
-// const knex = require("knex");
 const morgan = require("morgan");
-// const pg = require('pg');
-// pg.defaults.ssl = process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false;
-
 const { NODE_ENV, PORT, IP } = process.env;
 
 export const createApp = () => {
   const app = express();
   createConnection(sequelize);
 
-  // app.use(function(req, res, next) {
-  //   res.header("Access-Control-Allow-Origin", "*");
-  //   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-  //   next();
-  // });
-
-  // const pgdb = knex({
-  //   client: 'pg',
-  //   connection: `${process.env.DATABASE_URL}`,
-  // })
-  // console.log('processenvurl', process.env.DATABASE_URL)
-  // app.set('db', pgdb)
   const morganOption = NODE_ENV === "production" ? "tiny" : "common";
 
   app.use(morgan(morganOption));
@@ -53,34 +36,18 @@ export const createApp = () => {
     return res.status(200).json({ message: "food app server" });
   });
 
-  // app.get("/healthy",(req,res) => {
-  //   res.send('ok')
-  // })
   // Get all Restaurants
   app.get("/api/v1/restaurants", async (req, res) => {
-    console.log("getrequest");
     try {
-      //const results = await db.query("select * from restaurants");
 
-      // const restaurantRatingsData = await pgdb.raw(
-      //     "select * from restaurants left join (select restaurant_id, COUNT(*), TRUNC(AVG(rating),1) as average_rating from reviews group by restaurant_id) reviews on restaurants.id = reviews.restaurant_id;"
-      // );
-      // const restaurantRatingsData = await pgdb.raw(
-      //   "select * from restaurants");
-      // console.log('dbqueryresults', restaurantRatingsData)
       const restaurants = await Restaurant.findAll();
 
       res.status(200).json({
         status: "success",
         results: restaurants.length,
         data: restaurants,
-        // results: restaurantRatingsData.rows.length,
-        // data: {
-        //   restaurants: restaurantRatingsData.rows,
-        // },
       });
     } catch (err) {
-      console.log(err);
       return res.status(500).json({ message: err.message });
     }
   });
@@ -88,17 +55,6 @@ export const createApp = () => {
   //Get a Restaurant
   app.get("/api/v1/restaurants/:id", async (req, res) => {
     try {
-      // const restaurant = await pgdb.raw(
-      //   "select * from restaurants left join (select restaurant_id, COUNT(*), TRUNC(AVG(rating),1) as average_rating from reviews group by restaurant_id) reviews on restaurants.id = reviews.restaurant_id where id = $1",
-      //   [req.params.id]
-      // );
-      // // select * from restaurants wehre id = req.params.id
-
-      // const reviews = await pgdb.raw(
-      //   "select * from reviews where restaurant_id = $1",
-      //   [req.params.id]
-      // );
-      //console.log(reviews);
       let { id } = req.params;
       let restaurant = await Restaurant.findByPk(id, {
         include: "reviews",
@@ -108,13 +64,8 @@ export const createApp = () => {
       return res.status(200).json({
         status: "success",
         data: restaurant,
-        // data: {
-        //   restaurant: restaurant.rows[0],
-        //   reviews: reviews.rows,
-        // },
       });
     } catch (err) {
-      console.log(err);
       return res.status(500).json({ message: "Server error " + err.message });
     }
   });
@@ -122,19 +73,12 @@ export const createApp = () => {
   // Create a Restaurant
 
   app.post("/api/v1/restaurants", async (req, res) => {
-    console.log("postreq", req.body);
-
     try {
       let { err, value } = validateRestaurantData(req.body);
       if (err)
         return res
           .status(400)
           .json({ message: err.details[0].message, data: err.details });
-      // const results = await pgdb.raw(
-      //   "INSERT INTO restaurants (name, location, price_range) values ($1, $2, $3) returning *",
-      //   [req.body.name, req.body.location, req.body.price_range]
-      // );
-      // console.log('dbpostqueryresults', results)
       const restaurant = await Restaurant.create(value);
 
       res.status(201).json({
@@ -144,7 +88,6 @@ export const createApp = () => {
         },
       });
     } catch (err) {
-      console.log(err);
       return res.status(500).json({ message: "Server error " + err.message });
     }
   });
@@ -153,10 +96,6 @@ export const createApp = () => {
 
   app.put("/api/v1/restaurants/:id", async (req, res) => {
     try {
-      // const results = await pgdb.raw(
-      //   "UPDATE restaurants SET name = $1, location = $2, price_range = $3 where id = $4 returning *",
-      //   [req.body.name, req.body.location, req.body.price_range, req.params.id]
-      // );
       const { err, value } = validateRestaurantUpdateData(req.body);
       if (err)
         return res
@@ -176,7 +115,6 @@ export const createApp = () => {
         },
       });
     } catch (err) {
-      console.log(err);
       return res.status(500).json({ message: "Server error " + err.message });
     }
   });
@@ -202,18 +140,12 @@ export const createApp = () => {
         message: "restaurant",
       });
     } catch (err) {
-      console.log(err);
       return res.status(500).json({ message: "Server error " + err.message });
     }
   });
 
   app.post("/api/v1/restaurants/:id/addReview", async (req, res) => {
     try {
-      // const newReview = await pgdb.raw(
-      //   "INSERT INTO reviews (restaurant_id, name, review, rating) values ($1, $2, $3, $4) returning *;",
-      //   [req.params.id, req.body.name, req.body.review, req.body.rating]
-      // );
-      // console.log(newReview);
       const { err, value } = validateReviewData(req.body);
       if (err)
         return res
@@ -227,7 +159,6 @@ export const createApp = () => {
         },
       });
     } catch (err) {
-      console.log(err);
       return res.status(500).json({ message: "Server error " + err.message });
     }
   });
