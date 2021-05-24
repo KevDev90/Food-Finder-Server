@@ -21,9 +21,6 @@ export const createRestaurant = () => {
         type: DataTypes.INTEGER,
         allowNull: false,
       },
-      // deletedAt: {
-      //     type: DataTypes.DATE
-      // }
     },
     {
       sequelize,

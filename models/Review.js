@@ -28,9 +28,6 @@ export const createReview = () => {
         type: DataTypes.INTEGER,
         allowNull: false,
       },
-      // deletedAt: {
-      //     type: DataTypes.DATE
-      // }
     },
     {
       sequelize,

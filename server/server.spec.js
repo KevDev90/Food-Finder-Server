@@ -1,9 +1,9 @@
-// make sure to import mocks first
+// import mocks first
 import { mockRestaurant } from "../models/__mocks__/Restaurant";
 import { mockReview } from "../models/__mocks__/Review";
 import { mockRestaurantValidator } from "../validators/__mocks__/restaurant.validator";
 import { mockReviewValidator } from "../validators/__mocks__/review.validator";
-// do not remove this even though we don't use it it's still required to mock the database connection
+// required to mock the database connection
 import { createConnection } from "../utils/dbconnection.util";
 import supertest from "supertest";
 
@@ -11,7 +11,6 @@ jest.mock("../utils/dbconnection.util", () => ({
   createConnection: jest.fn().mockImplementation(() => Promise.resolve()),
 }));
 
-// and the system under test as last
 import { createApp } from "./server";
 
 describe("api routes", () => {
