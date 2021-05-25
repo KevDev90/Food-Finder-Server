@@ -1,5 +1,7 @@
 require('dotenv').config;
 
+//Config variables for different production environments
+
 module.exports = {
   development: {
     username: 'woiwcddofmraiv',

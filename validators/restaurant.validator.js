@@ -1,4 +1,5 @@
 import Joi from "joi";
+//Sets up Restaurant Validations for SQL DB
 
 const RestaurantValidationSchema = Joi.object({
     location: Joi.string().min(2).required(),

@@ -1,6 +1,8 @@
 import { Model, DataTypes } from "sequelize";
 import { sequelize } from "../utils/dbconnection.util";
 
+
+
 export const createRestaurant = () => {
   class Restaurant extends Model {}
 

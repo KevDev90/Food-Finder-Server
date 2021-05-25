@@ -1,6 +1,8 @@
 import { Model, DataTypes } from "sequelize";
 import { sequelize } from "../utils/dbconnection.util";
 
+
+
 export const createReview = () => {
   class Review extends Model {}
 
