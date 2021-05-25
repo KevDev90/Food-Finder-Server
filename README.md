@@ -16,6 +16,16 @@ After creating a Restaurant you can click anywhere on that Restaurants row in th
 
 Bon Appetit!
 
+## Screenshots
+### Landing Page 
+<img src="../client/src/images/FoodFinder-Landing.png" alt="Food Finder Landing Page" width="450">
+
+### Main Restaurant Table
+<img src="../client/src/images/FoodFinder-Main.png" alt="Food Finder Main Table" width="450" >
+
+### Add a Review
+<img src="../client/src/images/FoodFinder-Reviews.png" alt="Food Finder Reviews Page" width="450" >
+
 ## Technologies
 
 * Testing 
